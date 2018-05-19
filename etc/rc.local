@@ -1,0 +1,5 @@
+# add the following at the end of /etc/rc.local, before exit
+
+modprobe at24
+echo "24c32 0x57" > /sys/class/i2c-adapter/i2c-1/new_device
+# cat /sys/class/i2c-adapter/i2c-1/1-0057/eeprom | xxd
