@@ -40,4 +40,4 @@ In `/boot/config.txt`, it may be necessary to tweak the order for `dtoverlay=pps
  - `apt-get purge fake-hwclock`
  - `apt-get install build-essential cpufrequtils fbi git i2c-tools lighttpd lsof pps-tools rrdtool -V`
  - `mkdir /var/www/html/ntp/`
-
+ - `mkdir /var/lib/ntp/rrd/`
