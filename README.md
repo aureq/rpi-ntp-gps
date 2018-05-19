@@ -27,3 +27,14 @@ This repository is merely usable as it's just a brain dump of my own work. Use a
 
  - TFT Screen 480x320 3.5"
    - Install screen on top of rPi header
+
+# software
+ - NTPSec
+   - [INSTALL](https://github.com/ntpsec/ntpsec/blob/master/INSTALL)
+ - Lighttpd
+
+# software setup
+ - `apt-get purge fake-hwclock`
+ - `apt-get install build-essential cpufrequtils fbi git i2c-tools lighttpd lsof pps-tools rrdtool -V`
+ - `mkdir /var/www/html/ntp/`
+
