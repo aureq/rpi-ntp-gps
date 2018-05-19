@@ -14,7 +14,7 @@ This repository is merely usable as it's just a brain dump of my own work. Use a
 # hardware setup
  - RTC DS3231
    - Insert the battery into the RTC module
-   - Remove the diode if using a non-rechargeable battery from the RTC module
+   - Remove the diode if using a non-rechargeable battery (CR2032) from the RTC module
    - Connect the RTC to the I2C bus (`SDA` and `SCL`)
    - Connect `SQW`  to GPIO 22
    - Connect `VCC` pin to `3.3v` and `GND` pin to `GND`
