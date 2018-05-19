@@ -1,0 +1,112 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:        timeserver
+# Required-Start:  $network $remote_fs $syslog
+# Required-Stop:   $network $remote_fs $syslog
+# Default-Start:   2 3 4 5
+# Default-Stop:    1
+# Short-Description: Start time service
+### END INIT INFO
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin/:/usr/local/bin
+
+# . /lib/lsb/init-functions
+
+DAEMON2=/usr/local/sbin/ntpd
+PIDFILE2=/var/run/ntpd.pid
+
+DAEMON3=/etc/ntp-stats/bin/touchscreen.py
+PIDFILE3=/var/run/touchscreen.pid
+
+test -x $DAEMON2 || exit 5
+
+LOCKFILE=/var/lock/ntpdate
+
+lock_ntpdate() {
+        if [ -x /usr/bin/lockfile-create ]; then
+                lockfile-create $LOCKFILE
+                lockfile-touch $LOCKFILE &
+                LOCKTOUCHPID="$!"
+        fi
+}
+
+unlock_ntpdate() {
+        if [ -x /usr/bin/lockfile-create ] ; then
+                kill $LOCKTOUCHPID
+                lockfile-remove $LOCKFILE
+        fi
+}
+
+log_daemon_msg() {
+	echo -n "$1"
+}
+
+log_end_msg() {
+	echo ""
+}
+
+
+GPSD_OPTS=-n
+NTPD_OPTS='-c /etc/ntp.conf'
+BAUD=115200
+
+RUNASUSER=nobody
+UGID=$(getent passwd $RUNASUSER | cut -f 3,4 -d:) || true
+if test "$(uname -s)" = "Linux"; then
+        NTPD_OPTS="$NTPD_OPTS -u $UGID"
+fi
+
+# It's best to have gpsd start first.  That way when ntpd restarts it has
+# a good local time handy.  If ntpd starts first, it will set the local
+# clock using a remote, probably pool, server.  Then ntpd has to spend a
+# whole day undoing the damage done to the PLL.
+
+case $1 in
+        start)
+                # Make sure the UART device is in a good state
+                # Adafruit HAT starts at some weird baud rate unknown to man.
+		/etc/neo6m/gpsinit --speed $BAUD --init_nmea_first /dev/gps0
+
+                log_daemon_msg "Starting NTP server" "touchscreen"
+                start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE3 --startas $DAEMON3 -- --event-device /dev/input/event0
+
+                # Launch ntpd
+                lock_ntpdate
+                log_daemon_msg "Starting NTP server" "timeservice"
+                start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE2 --startas $DAEMON2 -- -p $PIDFILE2 $NTPD_OPTS
+
+                status=$?
+                log_end_msg $status
+                unlock_ntpdate
+                ;;
+        stop)
+                log_daemon_msg "Stopping ntpd" "timeservice"
+                start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE2
+                start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE3
+                log_end_msg $?
+                rm -f $PIDFILE2 $PIDFILE3
+                ;;
+        restart|force-reload)
+                $0 stop && sleep 2 && $0 start
+                ;;
+        try-restart)
+                if $0 status >/dev/null; then
+                        $0 restart
+                else
+                        exit 0
+                fi
+                ;;
+        reload)
+                exit 3
+                ;;
+        status)
+                status_of_proc $DAEMON2 "time service"
+                ;;
+        *)
+                echo "Usage: $0 {start|stop|restart|try-restart|force-reload|status}"
+                exit 2
+                ;;
+esac
+
+# end
