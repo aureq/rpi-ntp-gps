@@ -28,6 +28,9 @@ This repository is merely usable as it's just a brain dump of my own work. Use a
  - TFT Screen 480x320 3.5"
    - Install screen on top of rPi header
 
+## Notes
+In `/boot/config.txt`, it may be necessary to tweak the order for `dtoverlay=pps-gpio,gpiopin=22` and `dtoverlay=pps-gpio,gpiopin=4`. `/dev/pps0` should be linked to the GPS device on GPIO 4.
+
 # software
  - NTPSec
    - [INSTALL](https://github.com/ntpsec/ntpsec/blob/master/INSTALL)
