@@ -1,0 +1,12 @@
+		</table>
+		<script>
+			setInterval(function() {
+				console.log("refresh...");
+				var images = document.images;
+				for (var i=0; i<images.length; i++) {
+					images[i].src = images[i].src.replace(/\btime=[^&]*/, 'time=' + new Date().getTime());
+				}
+			}, 120000); // 10000 milliseconds = 10 seconds
+		</script>
+	</body>
+</html>

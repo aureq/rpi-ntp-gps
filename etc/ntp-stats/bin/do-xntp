@@ -1,0 +1,168 @@
+#! /bin/bash
+#
+# 15 feb 2011 cron job for ntp-dev data plotting
+# 15 feb 2011 updated web site http://www.wraith.sf.ca.us/ntp/
+
+. /etc/ntp-stats/ntp-stats.conf
+if [ ! "$?" ]; then exit 1; fi
+
+if [ ! -d "$IMGPATH" ]; then mkdir -p "$IMGPATH"; fi
+
+if [ "$1" = "rrdonly" ]; then
+	for X in $NTP_SYSTEMS
+	do
+		/etc/ntp-stats/bin/do-ntp-rrdstats "${X}"
+	done
+	exit 0
+fi
+
+if [ "$1" = "pngonly" ]; then
+
+	if [ ! -z "$2" ]; then
+		TIME_RANGE_MODULES="$2"
+	fi
+
+	for X in $NTP_SYSTEMS
+	do
+		for M in $TIME_RANGE_MODULES; do
+			V=${M}_WIDTH;		WIDTH=${!V}
+			V=${M}_HEIGHT;		HEIGHT=${!V}
+			V=${M}_START;		START=${!V}
+			V=${M}_NAME;		NAME=${!V}
+			V=${M}_LABEL;		LABEL=${!V}
+			DATE=`TZ=UTC date`
+
+			/usr/bin/rrdtool graph \
+			    --imgformat PNG ${IMGPATH}/${X}-${NAME}-ntp-loadavg.png \
+			    --width $WIDTH --height $HEIGHT \
+			    --lower-limit 0 \
+				--vertical-label "${LABEL} - ${X}" \
+				--title "$DATE" \
+				--start "$START" \
+				DEF:loadavg1=${RRDPATH}/${X}.rrd:loadavg1:LAST \
+				DEF:loadavg5=${RRDPATH}/${X}.rrd:loadavg5:LAST \
+				DEF:loadavg15=${RRDPATH}/${X}.rrd:loadavg15:LAST \
+				CDEF:nloadavg1=loadavg1,25,* \
+				CDEF:nloadavg5=loadavg5,25,* \
+				CDEF:nloadavg15=loadavg15,25,* \
+				LINE1:nloadavg1#0000FF:"load 1min" \
+				LINE1:nloadavg5#8080FF:"load 5min" \
+				LINE1:nloadavg15#B0B0FF:"load 15min" \
+				HRULE:25#FFC0C0::dashes \
+				HRULE:50#FFC0C0::dashes \
+				HRULE:75#FFC0C0::dashes \
+				HRULE:100#FFC0C0::dashes \
+				>/dev/null
+
+			/usr/bin/rrdtool graph \
+			    --imgformat PNG ${IMGPATH}/${X}-${NAME}-ntp-temp.png \
+			    --width $WIDTH --height $HEIGHT \
+			    --lower-limit 0 --upper-limit 80 \
+			    --left-axis-format %.0lf°C \
+				--vertical-label "${LABEL} - ${X}" \
+				--title "$DATE" \
+				--start "$START" \
+				DEF:rtctemp=${RRDPATH}/${X}.rrd:rtctemp:LAST \
+				DEF:coretemp=${RRDPATH}/${X}.rrd:coretemp:LAST \
+				CDEF:nrtctemp=rtctemp,1000,/ \
+				CDEF:ncoretemp=coretemp,1000,/ \
+				LINE1:nrtctemp#0000FF:"rtc temp" \
+				LINE1:ncoretemp#00FF00:"core temp" \
+				GPRINT:nrtctemp:AVERAGE:%.2lf°C \
+				GPRINT:ncoretemp:AVERAGE:%.2lf°C \
+				>/dev/null
+
+			/usr/bin/rrdtool graph \
+			    --imgformat PNG ${IMGPATH}/${X}-${NAME}-ntp-rtctemp.png \
+			    --width $WIDTH --height $HEIGHT \
+			    --lower-limit 0 --upper-limit 80 \
+				--vertical-label "${LABEL} - ${X}" \
+				--title "$DATE" \
+				--start "$START" \
+				DEF:rtctemp=${RRDPATH}/${X}.rrd:rtctemp:LAST \
+				CDEF:nrtctemp=rtctemp,1000,/ \
+				LINE1:nrtctemp#0000FF:"rtc temp" \
+				GPRINT:nrtctemp:LAST:%le  >/dev/null
+
+			/usr/bin/rrdtool graph \
+			    --imgformat PNG ${IMGPATH}/${X}-${NAME}-ntp-coretemp.png \
+			    --width $WIDTH --height $HEIGHT \
+			    --lower-limit 0 --upper-limit 80 \
+				--vertical-label "${LABEL} - ${X}" \
+				--title "$DATE" \
+				--start "$START" \
+				DEF:coretemp=${RRDPATH}/${X}.rrd:coretemp:LAST \
+				CDEF:ncoretemp=coretemp,1000,/ \
+				LINE1:ncoretemp#0000FF:"core temp" \
+				GPRINT:ncoretemp:LAST:%le  >/dev/null
+
+			/usr/bin/rrdtool graph \
+			    --imgformat PNG ${IMGPATH}/${X}-${NAME}-ntp-offset.png \
+			    --width $WIDTH --height $HEIGHT \
+				--vertical-label "${LABEL} - ${X}" \
+				--title "$DATE" \
+				--start "$START" \
+				DEF:offset=${RRDPATH}/${X}.rrd:offset:LAST \
+				CDEF:noffset=offset,1000,/ \
+				LINE1:noffset#0000FF:"offset" \
+				GPRINT:noffset:LAST:%.2lf%ss  \
+				>/dev/null
+
+			/usr/bin/rrdtool graph \
+			    --imgformat PNG ${IMGPATH}/${X}-${NAME}-ntp-sysjit.png \
+			    --width $WIDTH --height $HEIGHT \
+				--vertical-label "${LABEL} - ${X}" \
+				--title "$DATE" \
+				--start "$START" \
+				DEF:sjit=${RRDPATH}/${X}.rrd:sjit:LAST \
+				CDEF:nsjit=sjit,1000,/ \
+				LINE1:nsjit#0000FF:"sysjit" \
+				GPRINT:nsjit:LAST:%.2lf%ss >/dev/null
+
+			/usr/bin/rrdtool graph \
+			    --imgformat PNG ${IMGPATH}/${X}-${NAME}-ntp-clkjit.png \
+			    --width $WIDTH --height $HEIGHT \
+				--vertical-label "${LABEL} - ${X}" \
+				--title "$DATE" \
+				--start "$START" \
+				DEF:cjit=${RRDPATH}/${X}.rrd:cjit:LAST \
+				CDEF:ncjit=cjit,1000,/ \
+				LINE1:ncjit#0000FF:"cjit" \
+				GPRINT:ncjit:LAST:%.2lf%ss >/dev/null
+
+			/usr/bin/rrdtool graph  \
+			    --imgformat PNG ${IMGPATH}/${X}-${NAME}-ntp-wander.png \
+			    --width $WIDTH --height $HEIGHT \
+				--vertical-label "${LABEL} - ${X}" \
+				--title "$DATE" \
+				--start "$START" \
+				DEF:wander=${RRDPATH}/${X}.rrd:wander:LAST \
+				LINE1:wander#0000FF:"wander" \
+				GPRINT:wander:LAST:%.2lf%sPPM >/dev/null
+
+			/usr/bin/rrdtool graph \
+			    --imgformat PNG ${IMGPATH}/${X}-${NAME}-ntp-freq.png \
+			    --width $WIDTH --height $HEIGHT \
+			    --alt-autoscale \
+				--vertical-label "${LABEL} - ${X}" \
+				--title "$DATE" \
+				--start "$START" \
+				DEF:freq=${RRDPATH}/${X}.rrd:freq:LAST \
+				LINE1:freq#0000FF:"frequency (ppm)" \
+				GPRINT:freq:LAST:%lfPPM >/dev/null
+
+			/usr/bin/rrdtool graph \
+			    --imgformat PNG ${IMGPATH}/${X}-${NAME}-ntp-disp.png \
+			    --width $WIDTH --height $HEIGHT \
+			    --alt-autoscale \
+				--vertical-label "${LABEL} - ${X}" \
+				--title "$DATE" \
+				--start "$START" \
+				DEF:disp=${RRDPATH}/${X}.rrd:disp:LAST \
+				CDEF:ndisp=disp,1000,/ \
+				LINE1:ndisp#0000FF:"dispersion" \
+				GPRINT:ndisp:LAST:%.2lf%ss >/dev/null
+		done
+	done
+	exit 0
+fi

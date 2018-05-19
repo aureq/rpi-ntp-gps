@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>NTP statistics</title>
+		<meta charset="utf-8"/>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	</head>
+	<body>
+		<li>
+			<ul>dispersion: sum of error bounds from the stratum 0 timing root to your system and should be single digit ms or lower.</ul>
+			<ul>frequency: frequency is the natural drift of your system clock crystal in PPM (us/s) and closer to zero is better.</ul>
+			<ul>wander: error bounds on your crystal drift should be less than 1 PPM.</ul>
+			<ul>cjit: error bounds on your crystal offset and should be less than 1 ms.</ul>
+			<ul>sysjit: error bound on offset and should be single digit ms or lower.</ul>
+			<ul>offset: time difference from real time; less than 1 ms is good.</ul>
+			<ul></ul>
+			<ul></ul>
+			<ul></ul>
+		</li>
+		<table>

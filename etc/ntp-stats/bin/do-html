@@ -1,0 +1,24 @@
+#!/bin/bash
+
+. /etc/ntp-stats/ntp-stats.conf
+
+cat $TPLPATH/index.html.head
+for X in $NTP_SYSTEMS; do
+	for Y in $METRICS; do
+		cat $TPLPATH/index.html.table-head
+		for M in $TIME_RANGE_MODULES; do
+			V=${M}_WIDTH;		WIDTH=${!V}
+			V=${M}_HEIGHT;		HEIGHT=${!V}
+			V=${M}_START;		START=${!V}
+			V=${M}_NAME;		NAME=${!V}
+			V=${M}_LABEL;		LABEL=${!V}
+
+
+			IMG="images/${X}-${NAME}-ntp-${Y}.png"
+			sed "s#__IMG__#${IMG}#g" $TPLPATH/index.html.core
+
+		done
+		cat $TPLPATH/index.html.table-foot
+	done
+done
+cat $TPLPATH/index.html.tail

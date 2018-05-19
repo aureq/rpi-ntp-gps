@@ -1,0 +1,42 @@
+#! /bin/sh
+#
+# 15 feb 2011 ntp-dev operands rrd database initialize.
+# 15 feb 2011 updated web site http://www.wraith.sf.ca.us/ntp/
+
+case "$1" in
+	"")	echo "Missing system name."; exit 1
+esac
+
+. /etc/ntp-stats/ntp-stats.conf
+
+# 26 hours and 8 days data bins
+
+#/usr/bin/rrdtool create "$RRDPATH/$1.rrd"   \
+#	DS:offset:GAUGE:1200:U:U \
+#	DS:sjit:GAUGE:1200:U:U \
+#	DS:cjit:GAUGE:1200:U:U \
+#	DS:wander:GAUGE:1200:U:U \
+#	DS:freq:GAUGE:1200:U:U \
+#	DS:disp:GAUGE:1200:U:U \
+#	RRA:LAST:0.5:1:312 \
+#	RRA:LAST:0.5:12:2304
+
+/usr/bin/rrdtool create "$RRDPATH/$1.rrd"   \
+	--step 60 \
+	DS:loadavg1:GAUGE:1200:U:U \
+	DS:loadavg5:GAUGE:1200:U:U \
+	DS:loadavg15:GAUGE:1200:U:U \
+	DS:coretemp:GAUGE:1200:U:U \
+	DS:rtctemp:GAUGE:1200:U:U \
+	DS:offset:GAUGE:1200:U:U \
+	DS:sjit:GAUGE:1200:U:U \
+	DS:cjit:GAUGE:1200:U:U \
+	DS:wander:GAUGE:1200:U:U \
+	DS:freq:GAUGE:1200:U:U \
+	DS:disp:GAUGE:1200:U:U \
+	RRA:MAX:0.5:1:1560 \
+	RRA:AVERAGE:0.5:1:1560 \
+	RRA:MAX:0.5:60:2400 \
+	RRA:AVERAGE:0.5:60:2400
+
+#end

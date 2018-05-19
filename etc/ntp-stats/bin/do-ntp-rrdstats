@@ -1,0 +1,40 @@
+#! /bin/bash
+#
+# grab ntp stats using ntpq for rrdtool
+# 28 mar 2006 gnu@wraith.sf.ca.us
+# 30 apr 2008 moving target for names hackage. sigh.
+# 15 feb 2011 updated web site http://www.wraith.sf.ca.us/ntp/
+
+. /etc/ntp-stats/ntp-stats.conf
+
+case "$1" in
+	"")     echo "Missing system name."; exit 1
+esac
+
+/usr/local/bin/ntpq -4 -c rv $1 | awk 'BEGIN{ RS=","}{ print }' >> $TMPPATH/ntp-rrdstats.$$
+
+LOADAVG1=`cat /proc/loadavg | awk '{print $1}'`
+LOADAVG5=`cat /proc/loadavg | awk '{print $2}'`
+LOADAVG15=`cat /proc/loadavg | awk '{print $3}'`
+CORETEMP=`cat /sys/devices/virtual/thermal/thermal_zone0/temp`
+RTCTEMP=`cat /sys/devices/platform/soc/3f804000.i2c/i2c-1/1-0068/hwmon/hwmon0/temp1_input`
+NOFFSET=`grep offset $TMPPATH/ntp-rrdstats.$$ | awk 'BEGIN{FS="="}{print $2}'`
+NFREQ=`grep frequency $TMPPATH/ntp-rrdstats.$$ | awk 'BEGIN{FS="="}{print $2}'`
+NSJIT=`grep sys_jitter $TMPPATH/ntp-rrdstats.$$ | awk 'BEGIN{FS="="}{print $2}'`
+NCJIT=`grep clk_jitter $TMPPATH/ntp-rrdstats.$$ | awk 'BEGIN{FS="="}{print $2}'`
+NWANDER=`grep clk_wander $TMPPATH/ntp-rrdstats.$$ | awk 'BEGIN{FS="="}{print $2}'`
+NDISPER=`grep rootdisp $TMPPATH/ntp-rrdstats.$$ | awk 'BEGIN{FS="="}{print $2}'`
+
+
+#echo ${NOFFSET} ${NSJIT} ${NCJIT} ${NWANDER} ${NFREQ} ${NDISPER}
+#exit
+
+# keep this in the same order as do-newntpstat creates them, please.
+
+/usr/bin/rrdtool update \
+    $RRDPATH/$1.rrd \
+    N:${LOADAVG1}:${LOADAVG5}:${LOADAVG15}:${CORETEMP}:${RTCTEMP}:${NOFFSET}:${NSJIT}:${NCJIT}:${NWANDER}:${NFREQ}:${NDISPER}
+
+rm $TMPPATH/ntp-rrdstats.$$
+
+#end
