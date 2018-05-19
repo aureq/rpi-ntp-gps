@@ -1,0 +1,9 @@
+# cron
+@reboot		root	/etc/ntp-stats/bin/do-xntp pngonly >/dev/null 2>&1
+
+* *	* * *	root	/etc/ntp-stats/bin/do-xntp rrdonly >/dev/null 2>&1
+*/2 *	* * *	root	/etc/ntp-stats/bin/do-xntp pngonly HOUR >/dev/null 2>&1
+*/10 *	* * *	root	/etc/ntp-stats/bin/do-xntp pngonly DAY >/dev/null 2>&1
+*/30 *	* * *	root	/etc/ntp-stats/bin/do-xntp pngonly WEEK >/dev/null 2>&1
+0 *	* * *	root	/etc/ntp-stats/bin/do-xntp pngonly FORTNIGHT >/dev/null 2>&1
+0 0	* * *	root	/etc/ntp-stats/bin/do-xntp pngonly MONTH >/dev/null 2>&1
