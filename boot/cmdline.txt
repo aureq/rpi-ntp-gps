@@ -1,0 +1,3 @@
+# Add the following kernel parameters to /boot/cmdline.txt
+# ensure you disable the console ton ttyAMA0
+console=tty1 fbcon=map:10 fbcon=font:VGA8x8 nohz=off
